@@ -5,5 +5,5 @@ for ((day=$next_challenge_day; day<=25; day++)); do
     mkdir -p day$day
     touch day$day/sample.txt
     touch day$day/input.txt
-    touch day$day/solution.py
+    echo -e 'import sys; sys.path.append("../"); from utils import *\n\nlines = read_file_lines("sample.txt")' > day$day/solution.py
 done
