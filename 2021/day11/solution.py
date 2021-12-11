@@ -1,5 +1,6 @@
 import sys; sys.path.append("../"); from utils import *
 import numpy as np
+from tqdm import tqdm
 
 
 class Octopuses:
@@ -20,7 +21,8 @@ class Octopuses:
             [1, 0],
             [1, 1],
         ]
-        self.steps = 2
+        self.steps = 100
+        self.num_flashes = 0
 
     def get_value(self, location):
         y, x = location
@@ -33,29 +35,36 @@ class Octopuses:
         self.grid = (self.grid + 1) % 10
 
     def run(self):
-        print(self.grid)
-        for step in range(self.steps):
-            print("Step:", step)
+        for _ in tqdm(range(1, self.steps + 1)):
             self.increment_grid()
-            # TODO: change this so instead of doing it twice, it is in a while loop
-            # condition for while would be while the board is the same before and after? or maybe just while there are tens to check?
-            locations = np.argwhere(self.grid != 0)
-            for location in locations:
-                for direction in self.directions:
-                    adj_loc = location + direction
-                    if self.get_value(adj_loc) == 0:
-                        self.grid[location[0], location[1]] += 1
-            zeros = np.where(self.grid == 0)
-            self.grid[np.where(self.grid == 10)] = 0
-            locations = np.argwhere(self.grid != 0)
-            self.grid[zeros] = -1
-            for location in locations:
-                for direction in self.directions:
-                    adj_loc = location + direction
-                    if self.get_value(adj_loc) == 0:
-                        self.grid[location[0], location[1]] += 1
-            self.grid[np.where(self.grid == -1)] = 0
-            print(self.grid)
+            i = 0
+            while True:
+                if i > 0:
+                    # keep track of where the zeros are that were just used
+                    zeros = np.where(self.grid == 0)
+                    # set all 10 or greater to zero (flashes)
+                    self.grid[np.where(self.grid >= 10)] = 0
+                    # get locations of all non-zero values
+                # iterate over all non-zero locations, and increment them for each adjacent zero
+                locations = np.argwhere(self.grid != 0)
+                if i > 0:
+                    # set old zeros to -1 so they don't repeat
+                    self.grid[zeros] = -1
+                for location in locations:
+                    for direction in self.directions:
+                        adj_loc = location + direction
+                        if self.get_value(adj_loc) == 0:
+                            self.grid[location[0], location[1]] += 1
+                if i > 0:
+                    self.grid[np.where(self.grid == -1)] = 0
+                i += 1
+                if self.grid[self.grid > 9].sum() == 0:
+                    self.num_flashes += len(self.grid[self.grid == 0])
+                    break
+                #if i > 10:
+                #    breakpoint()
+                #    break
+        print("Part 1:", self.num_flashes)
             
 
 
